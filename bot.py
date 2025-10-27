@@ -35,26 +35,24 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
-
-
 @bot.command()
 async def country(ctx, member: discord.Member = None):
     member = member or ctx.author
     paises = [
-        ("Bolivia", "🇧🇴"),
-        ("Peru", "🇵🇪"),
-        ("Argentina", "🇦🇷"),
-        ("Ecuador", "🇪🇨"),
-        ("Venezuela", "🇻🇪"),
-        ("Nigeria", "🇳🇬"),
-        ("Senegal", "🇸🇳"),
-        ("Congo", "🇨🇬"),
-        ("Uganda", "🇺🇬"),
-        ("Estados Unidos", "🇺🇸")
+        ("boliviano", "🇧🇴"),
+        ("peruano", "🇵🇪"),
+        ("argentino", "🇦🇷"),
+        ("ecuatoriano", "🇪🇨"),
+        ("venezolano", "🇻🇪"),
+        ("nigeriano", "🇳🇬"),
+        ("senegalés", "🇸🇳"),
+ 
+        ("estadounidense", "🇺🇸")
     ]
-    pais, bandera = random.choice(paises)
-    await ctx.send(f"{member.display_name} es de **{pais}** {bandera}")
 
+    pais, bandera = random.choice(paises)
+
+    await ctx.send(f"{member.display_name} es {pais} {bandera}") 
 
 @bot.command()
 async def memide(ctx, member: discord.Member = None):
@@ -66,7 +64,7 @@ async def memide(ctx, member: discord.Member = None):
 async def gayrate(ctx, member: discord.Member = None):
     member = member or ctx.author
     porcentaje = random.randint(1, 100)
-    await ctx.send(f"{member.display_name} es **{porcentaje}% gay**")
+    await ctx.send(f"{member.display_name} es {porcentaje}% gay")
 
 async def get_bitcoin_price():
     url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
@@ -104,7 +102,7 @@ async def bitcoin(ctx):
     price = await get_bitcoin_price()
     
     if price:
-        await ctx.send(f"$ BTC Price: **${price:,.2f} USD**")
+        await ctx.send(f"$ BTC Price: ${price:,.2f} USD")
     else:
         await ctx.send("Could not get Bitcoin price")
 
