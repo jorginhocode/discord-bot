@@ -257,20 +257,21 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
 
 @bot.tree.command(name="help", description="Show all available commands")
 async def help(interaction: discord.Interaction):
+    current_time = datetime.now().strftime("Today at %H:%M")
+    
     embed = discord.Embed(
-        title="BOT COMMANDS",
+        title="Command List",
         description=(
-            "/userinfo: Get detailed info about a user.\n"
-            "/gayrate: Shows a random percentage (fun).\n"
-            "/memide: Generates a random measurement.\n"
-            "/ping: Checks if the bot is online.\n"
-            "/join: Bot joins your voice channel.\n"
-            "/dado: Tira un dado del 1 al 6.\n"
+            ">>> `•` **/userinfo:** Get detailed info about a user.\n"
+            "`•` **/gayrate:** Shows a random percentage (fun).\n"
+            "`•` **/memide:** Generates a random measurement.\n"
+            "`•` **/ping:** Checks if the bot is online.\n"
+            "`•` **/dado:** Roll a dice from 1 to 6."
         ),
-        color=discord.Color.from_rgb(0, 0, 1)
+        color=discord.Color.from_rgb(88, 101, 242)
     )
     embed.set_footer(
-        text="Use /userinfo to get detailed user information",
+        text=f"by @potyhx  •  {current_time}",
         icon_url=bot.user.display_avatar.url
     )
     await interaction.response.send_message(embed=embed)
