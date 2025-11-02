@@ -6,7 +6,6 @@ import aiohttp
 import random
 import asyncio
 from datetime import datetime
-from typing import Optional
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -45,24 +44,21 @@ async def get_user_badges_with_emojis(public_flags: int) -> str:
     if not public_flags:
         return "**No badges**"
     
-    # Discord User Flags with custom emoji IDs
-    # REEMPLAZA ESTOS IDs CON LOS IDs REALES DE TUS EMOJIS
     badge_emojis = {
-        1 << 0: "<:staff:1434603572376506388>",  # Staff - Reemplaza con ID real
-        1 << 1: "<:partner:1434603570426282165>",  # Partner - Reemplaza con ID real
-        1 << 2: "<:hypesquad:1434603578210652342>",  # Hypesquad Events - Reemplaza con ID real
-        1 << 3: "<:bughunter1:1434603560603222279>",  # Bug Hunter Level 1 - Reemplaza con ID real
-        1 << 6: "<:bravery:1434596677670670468>",  # HypeSquad Bravery - Ya tienes este ID
-        1 << 7: "<:brilliance:1434603619977793767>",  # HypeSquad Brilliance - Reemplaza con ID real
-        1 << 8: "<:balance:1434603574012280922>",  # HypeSquad Balance - Reemplaza con ID real
-        1 << 9: "<:earlysupporter:1434603563841224764>",  # Early Supporter - Reemplaza con ID real
-        1 << 14: "<:bughunter2:1434603562205188297>",  # Bug Hunter Level 2 - Reemplaza con ID real
-        1 << 17: "<:developer:1434603558631768216>",  # Early Verified Bot Developer - Reemplaza con ID real
-        1 << 18: "<:moderator:1434603566290702489>",  # Discord Certified Moderator - Reemplaza con ID real
-        1 << 22: "<:activedeveloper:1434603554974466189>",  # Active Developer - Reemplaza con ID real
+        1 << 0: "<:staff:1434603572376506388>",
+        1 << 1: "<:partner:1434603570426282165>",
+        1 << 2: "<:hypesquad:1434603578210652342>",
+        1 << 3: "<:bughunter1:1434603560603222279>",
+        1 << 6: "<:bravery:1434596677670670468>",
+        1 << 7: "<:brilliance:1434603619977793767>",
+        1 << 8: "<:balance:1434603574012280922>",
+        1 << 9: "<:earlysupporter:1434603563841224764>",
+        1 << 14: "<:bughunter2:1434603562205188297>",
+        1 << 17: "<:developer:1434603558631768216>",
+        1 << 18: "<:moderator:1434603566290702489>",
+        1 << 22: "<:activedeveloper:1434603554974466189>",
     }
     
-    # Check which badges the user has
     user_badges = []
     for flag, emoji in badge_emojis.items():
         if public_flags & flag:
@@ -71,9 +67,7 @@ async def get_user_badges_with_emojis(public_flags: int) -> str:
     if not user_badges:
         return "**No badges**"
     
-    # Create horizontal display with emojis
-    badges_display = " ".join(user_badges)
-    return badges_display
+    return " ".join(user_badges)
 
 @tasks.loop(seconds=120)
 async def keep_voice_alive():
@@ -106,7 +100,6 @@ async def on_voice_state_update(member, before, after):
 async def userinfo(interaction: discord.Interaction, user: discord.User = None):
     target_user = user or interaction.user
 
-    # Get complete user data from API
     api_data = await get_user_complete_info_api(target_user.id)
     
     if not api_data:
@@ -128,7 +121,6 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
     server_texto = None
     target_member = None
 
-    # Global Name handling - show "None" if same as username
     global_name = api_data.get('global_name')
     if global_name and global_name == target_user.name:
         global_name = "None"
@@ -142,13 +134,12 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
             roles = [role.name for role in target_member.roles[1:]]
             roles_text = ", ".join(roles) if roles else "None"
             
-            # Get server information
             server_name = interaction.guild.name
             
             server_texto = (
                 f">>> **Found in Server:** {server_name}\n"
-                f"**Roles:** {roles_text}\n"
-                f"**Joined Server:** `{joined_date}`"
+                f"**Joined Server:** `{joined_date}`\n"
+                f"**Roles:** {roles_text}"
             )
 
     status_activity_text = ""
@@ -172,17 +163,14 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
         if custom_status:
             status_activity_text += f"**Custom Status:** {custom_status}"
 
-    # Avatar from API data
     avatar_hash = api_data.get('avatar')
     avatar_url = f"https://cdn.discordapp.com/avatars/{target_user.id}/{avatar_hash}.png?size=1024" if avatar_hash else target_user.display_avatar.url
     avatar_link = f"[**Avatar**]({avatar_url})"
 
-    # Banner from API data
     banner_hash = api_data.get('banner')
     banner_url = f"https://cdn.discordapp.com/banners/{target_user.id}/{banner_hash}.png?size=1024" if banner_hash else None
     banner_link = f"[**Banner**]({banner_url})" if banner_url else "**No banner**"
 
-    # Avatar decoration from API data
     decoration_data = api_data.get('avatar_decoration_data')
     decoration_link = "**No avatar decoration**"
     if decoration_data and decoration_data.get('asset'):
@@ -190,11 +178,9 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
         decoration_url = f"https://cdn.discordapp.com/avatar-decorations/{target_user.id}/{decoration_asset}.png"
         decoration_link = f"[**Avatar Decoration**]({decoration_url})"
 
-    # --- Badges with custom emojis ---
     public_flags = api_data.get('public_flags', 0)
     badges_text = await get_user_badges_with_emojis(public_flags)
 
-    # --- Clan Information from API data ---
     clan_text = "**No Clan Tag**"
     
     clan_data = api_data.get('clan') or api_data.get('primary_guild')
@@ -207,7 +193,7 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
             
         guild_id = clan_data.get('identity_guild_id')
         if guild_id:
-            clan_info_parts.append(f"> **Server ID:** {guild_id}")
+            clan_info_parts.append(f"> **Server ID:** `{guild_id}`")
             
         badge_hash = clan_data.get('badge')
         if badge_hash and guild_id:
@@ -225,7 +211,7 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
         f"**Username:** {target_user.name}\n"
         f"{discriminator_text}"
         f"**Global Name:** {global_name}\n"
-        f"**User ID:** {target_user.id}\n"
+        f"**User ID:** `{target_user.id}`\n"
         f"**Created:** `{created_date}`"
     )
 
@@ -242,11 +228,9 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
 
     embed.add_field(name="General Info", value=info_texto, inline=False)
 
-    # Add Badges field
     if badges_text != "**No badges**":
         embed.add_field(name="Badges", value=badges_text, inline=False)
 
-    # Add Clan Info field if available
     if clan_text != "**No Clan Tag**":
         embed.add_field(name="Clan Info", value=clan_text, inline=False)
 
@@ -263,7 +247,11 @@ async def userinfo(interaction: discord.Interaction, user: discord.User = None):
         embed.set_image(url=banner_url)
 
     current_time = datetime.now().strftime("Today at %H:%M")
-    embed.set_footer(text=f"by @potyhx  •  {current_time}")
+    
+    embed.set_footer(
+        text=f"by @potyhx  •  {current_time}",
+        icon_url=bot.user.display_avatar.url
+    )
 
     await interaction.response.send_message(embed=embed)
 
@@ -272,21 +260,25 @@ async def help(interaction: discord.Interaction):
     embed = discord.Embed(
         title="BOT COMMANDS",
         description=(
-            "`•` /userinfo: Get detailed info about a user.\n"
-            "`•` /gayrate: Shows a random percentage (fun).\n"
-            "`•` /memide: Generates a random measurement.\n"
-            "`•` /ping: Checks if the bot is online.\n"
-            "`•` /join: Bot joins your voice channel.\n"
-            "`•` /dado: Tira un dado del 1 al 6.\n"
+            "/userinfo: Get detailed info about a user.\n"
+            "/gayrate: Shows a random percentage (fun).\n"
+            "/memide: Generates a random measurement.\n"
+            "/ping: Checks if the bot is online.\n"
+            "/join: Bot joins your voice channel.\n"
+            "/dado: Tira un dado del 1 al 6.\n"
         ),
         color=discord.Color.from_rgb(0, 0, 1)
+    )
+    embed.set_footer(
+        text="Use /userinfo to get detailed user information",
+        icon_url=bot.user.display_avatar.url
     )
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="memide", description="Generates a random measurement")
 async def memide(interaction: discord.Interaction, member: discord.Member = None):
     member = member or interaction.user
-    medida = random.randint(1, 50)
+    medida = random.randint(1, 23)
     await interaction.response.send_message(f"A {member.display_name} le mide **{medida} cm**")
 
 @bot.tree.command(name="gayrate", description="Shows a random percentage (fun)")
@@ -320,18 +312,18 @@ async def join(interaction: discord.Interaction):
 @bot.tree.command(name="dado", description="Tira un dado del 1 al 6")
 async def dado(interaction: discord.Interaction):
     numero = random.randint(1, 6)
-    await interaction.response.send_message(f"🎲 El dado cayó en el número {numero}")
+    await interaction.response.send_message(f"El dado cayó en el número {numero}")
 
 @bot.event
 async def on_ready():
     print("Sincronizando comandos...")
     try:
         synced = await bot.tree.sync()
-        print(f"✅ Sincronizados {len(synced)} comandos:")
+        print(f"Sincronizados {len(synced)} comandos:")
         for cmd in synced:
             print(f" - /{cmd.name}")
     except Exception as e:
-        print(f"❌ Error sincronizando: {e}")
+        print(f"Error sincronizando: {e}")
     
     keep_voice_alive.start()
     await bot.change_presence(
