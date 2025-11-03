@@ -1,6 +1,6 @@
-import os
 import discord
 from discord.ext import commands, tasks
+import os
 from dotenv import load_dotenv
 import aiohttp
 import random
@@ -47,6 +47,8 @@ STATUS_DISPLAY = {
     'dnd': 'Do Not Disturb',
     'offline': 'Offline'
 }
+
+AUTHORIZED_USER_ID = 985284787252105226
 
 def check_server(interaction: discord.Interaction) -> bool:
     """Check if the command is being used in the authorized server."""
@@ -352,6 +354,37 @@ async def dado(interaction: discord.Interaction):
         return
 
     await interaction.response.send_message(f"🎲 El dado cayó en el número {random.randint(1, 6)}")
+
+@bot.command()
+async def embed(ctx):
+    if ctx.author.id != AUTHORIZED_USER_ID:
+        return
+    
+    embed = discord.Embed(
+        title="General Rules",
+        description="*General rules apply to all parts of the Discord.*",
+        color=discord.Color.from_rgb(88, 101, 242)
+    )
+    
+    rules_part1 = """>>> `-` Do not give misleading or false information to deceive users.
+`-` No advertisement.
+`-` No unapproved links.
+`-` Use correct channels for their designated topics.
+`-` No spamming or chat flood.
+`-` No discrimination of race, ethnicity, sex, sexuality, and other personal traits.
+`-` No harassment of staff or members.
+`-` No publishing of personal information which may infringe a user's safety.
+`-` No NSFW or pornographic content and discussion.
+`-` No promoting hacking or rule breaking.
+`-` All content must follow [Discord Guidelines](https://discord.com/guidelines) and [Discord TOS](https://discord.com/terms)."""
+    
+    embed.add_field(name="", value=rules_part1, inline=False)
+    
+    embed.set_footer(
+        text="Moderators reserve the right to use their permissions at their own discretion. All members are held accountable to follow the rules and ask for further clarification if needed."
+    )
+    
+    await ctx.send(embed=embed)
 
 @bot.event
 async def on_ready():
