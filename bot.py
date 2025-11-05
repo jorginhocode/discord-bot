@@ -6,6 +6,7 @@ import aiohttp
 import random
 import asyncio
 from datetime import datetime
+import json
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -19,8 +20,9 @@ intents.voice_states = True
 intents.members = True
 intents.presences = True
 
+# Bot con prefix ! en lugar de ?
 bot = commands.Bot(
-    command_prefix="?",
+    command_prefix="!",
     intents=intents,
     help_command=None
 )
@@ -49,6 +51,27 @@ STATUS_DISPLAY = {
 }
 
 AUTHORIZED_USER_ID = 985284787252105226
+
+# Counting system
+COUNTING_CHANNEL_ID = 1433118356860309536
+COUNTING_FILE = "counting.json"
+
+def load_counting_data():
+    """Load counting data from JSON file."""
+    try:
+        with open(COUNTING_FILE, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Default data structure
+        return {str(MY_SERVER_ID): {"last_number": 0, "last_user": None}}
+
+def save_counting_data():
+    """Save counting data to JSON file."""
+    with open(COUNTING_FILE, 'w') as f:
+        json.dump(counting_data, f, indent=4)
+
+# Load counting data at startup
+counting_data = load_counting_data()
 
 def check_server(interaction: discord.Interaction) -> bool:
     """Check if the command is being used in the authorized server."""
@@ -281,15 +304,13 @@ async def help(interaction: discord.Interaction):
 
     embed = discord.Embed(
         title="Command List",
-        description=(
-            ">>> `•` **/userinfo:** Get detailed info about a user.\n"
-            "`•` **/gayrate:** Shows a random percentage (fun).\n"
-            "`•` **/memide:** Generates a random measurement.\n"
-            "`•` **/ping:** Checks if the bot is online.\n"
-            "`•` **/dado:** Roll a dice from 1 to 6."
-        ),
+        description="*Only available in this server.*",
         color=discord.Color.from_rgb(88, 101, 242)
     )
+    
+    commands_list = """>>> `-` **/userinfo:** Get detailed info about a user.\n`-` **/memide:** Generates a random measurement.\n`-` **/gayrate:** Shows a random percentage (fun).\n`-` **/dado:** Roll a dice from 1 to 6.\n`-` **/ping:** Checks if the bot is online."""
+    
+    embed.add_field(name="", value=commands_list, inline=False)
     embed.set_footer(text=create_footer(), icon_url=bot.user.display_avatar.url)
     await interaction.response.send_message(embed=embed)
 
@@ -355,35 +376,89 @@ async def dado(interaction: discord.Interaction):
 
     await interaction.response.send_message(f"🎲 El dado cayó en el número {random.randint(1, 6)}")
 
+@bot.event
+async def on_message(message):
+    """Handle counting system and process commands."""
+    if message.author.bot:
+        return
+    
+    # Counting system
+    if message.channel.id == COUNTING_CHANNEL_ID:
+        await handle_counting(message)
+    
+    # Process commands
+    await bot.process_commands(message)
+
+async def handle_counting(message):
+    """Handle counting channel messages - simplified version."""
+    server_id = str(message.guild.id)
+    
+    # Initialize server data if not exists
+    if server_id not in counting_data:
+        counting_data[server_id] = {"last_number": 0, "last_user": None}
+    
+    current_data = counting_data[server_id]
+    
+    try:
+        # Try to convert message to number
+        number = int(message.content.strip())
+        
+        expected_number = current_data["last_number"] + 1
+        
+        # Check if it's the correct number and not the same user
+        if number == expected_number and message.author.id != current_data["last_user"]:
+            # Correct count - update data
+            current_data["last_number"] = number
+            current_data["last_user"] = message.author.id
+            save_counting_data()
+        else:
+            # Wrong number or same user - delete message silently
+            await message.delete()
+            
+    except ValueError:
+        # Message is not a number - delete it silently
+        await message.delete()
+
 @bot.command()
 async def embed(ctx):
     if ctx.author.id != AUTHORIZED_USER_ID:
         return
     
     embed = discord.Embed(
-        title="General Rules",
-        description="*General rules apply to all parts of the Discord.*",
+        title="Choose Your Color",
+        description="*Choose a color role you'd like. Your username will change to the color you select.*",
         color=discord.Color.from_rgb(88, 101, 242)
     )
     
-    rules_part1 = """>>> `-` Do not give misleading or false information to deceive users.
-`-` No advertisement.
-`-` No unapproved links.
-`-` Use correct channels for their designated topics.
-`-` No spamming or chat flood.
-`-` No discrimination of race, ethnicity, sex, sexuality, and other personal traits.
-`-` No harassment of staff or members.
-`-` No publishing of personal information which may infringe a user's safety.
-`-` No NSFW or pornographic content and discussion.
-`-` No promoting hacking or rule breaking.
-`-` All content must follow [Discord Guidelines](https://discord.com/guidelines) and [Discord TOS](https://discord.com/terms)."""
+    rules_part1 = """>>> `-` <@&1341481118112940032>
+`-` <@&1341481117525479474>
+`-` <@&1341481118708269096>
+`-` <@&1341481102732431371>
+`-` <@&1341481568090329199>"""
     
     embed.add_field(name="", value=rules_part1, inline=False)
+    embed.add_field(name="", value="**Note:** Select the same color again to remove the color role.", inline=False)
     
-    embed.set_footer(
-        text="Moderators reserve the right to use their permissions at their own discretion. All members are held accountable to follow the rules and ask for further clarification if needed."
+    embed.set_footer(text=create_footer(), icon_url=bot.user.display_avatar.url)
+    
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def embed2(ctx):
+    if ctx.author.id != AUTHORIZED_USER_ID:
+        return
+
+    embed = discord.Embed(
+        title="Verification",
+        description="Click the button below to verify your account and get full server access.",
+        color=discord.Color.from_rgb(88, 101, 242)
     )
     
+    react_section = """>>> React with ⚔️ to get <@&1060288557949927524> rank and see all channels."""
+    
+    embed.add_field(name="", value=react_section, inline=False)
+    embed.set_image(url="https://i.imgur.com/YlpLaUk.png")
+    embed.set_footer(text=create_footer(), icon_url=bot.user.display_avatar.url)
     await ctx.send(embed=embed)
 
 @bot.event
@@ -416,10 +491,5 @@ async def on_command_error(ctx, error):
             print("Handling error 1006 - recovering connection")
             return
     print(f"Error: {error}")
-
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
 
 bot.run(TOKEN)
